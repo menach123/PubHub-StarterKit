@@ -16,8 +16,8 @@ import examples.pubhub.utilities.DAOUtilities;
 /**
  * Servlet implementation class UpdateBookServlet
  */
-@WebServlet("/UpdateBook")
-public class UpdateBookServlet extends HttpServlet {
+@WebServlet("/DeleteTag")
+public class DeleteTagServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 
@@ -27,39 +27,22 @@ public class UpdateBookServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		boolean isSuccess= false;
 		boolean isTagSuccess = false;
-		String isbn13 = request.getParameter("isbn13");
+		String isbn = request.getParameter("isbn13");
+		String tag = request.getParameter("tag");
 		
 		BookDAOImpl dao = DAOUtilities.getBookDAO();
-		Book book = dao.getBookByISBN(isbn13);
 		
-			
-		if(book != null){
-			// The only fields we want to be updateable are title, author and price. A new ISBN has to be applied for
-			// And a new edition of a book needs to be re-published.
-			book.setTitle(request.getParameter("title"));
-			book.setAuthor(request.getParameter("author"));
-			book.setPrice(Double.parseDouble(request.getParameter("price")));
-			BookTag tag = new BookTag(isbn13, request.getParameter("tags"));
-			System.out.println(tag.toString());
-			request.setAttribute("book", book);
-			request.setAttribute("tag", tag);
-			isSuccess = dao.updateBook(book);
-			isTagSuccess = dao.addBookTag(tag);
-			
-		}else {
-			//ASSERT: couldn't find book with isbn. Update failed.
-			isSuccess = false;
-			isTagSuccess = false;
-		}
-		
+		isSuccess = dao.deleteBookTagByISBN(isbn, tag);
+				
 		if(isSuccess){
-			request.getSession().setAttribute("message", "Book successfully updated");
+			request.getSession().setAttribute("message", "Tag Removed");
 			request.getSession().setAttribute("messageClass", "alert-success");
-			response.sendRedirect("ViewBookDetails?isbn13=" + isbn13);
+			response.sendRedirect("ViewBookDetails?isbn13=" + isbn);
 		}else {
-			request.getSession().setAttribute("message", "There was a problem updating this book");
+			request.getSession().setAttribute("message", "There was a problem removing the tag");
 			request.getSession().setAttribute("messageClass", "alert-danger");
 			request.getRequestDispatcher("bookDetails.jsp").forward(request, response);
+
 		}
 		
 	}

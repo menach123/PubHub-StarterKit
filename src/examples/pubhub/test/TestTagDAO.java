@@ -2,23 +2,22 @@ package examples.pubhub.test;
 
 import java.util.List;
 
-import examples.pubhub.dao.DAOlayer;
+import examples.pubhub.dao.BookDAOImpl;
+import examples.pubhub.model.Book;
 import examples.pubhub.model.BookTag;
 
 public class TestTagDAO {
 
 	public static void main(String[] args){
-		    DAOlayer dao = new DAOlayer();
-		    List<BookTag> list = dao.getAllTags();
+		BookDAOImpl dao = new BookDAOImpl();
+		String isbn = "12315454297";
+		boolean a = dao.deleteBookTagByISBN(isbn, "Cultural Appropriation"); 
 		    
-//		    System.out.println(list);
-
-		    for (int i = 0; i < list.size(); i++){
-		    	BookTag t = list.get(i);
-		    	System.out.println(t.getIsbn13()+ " "+ t.getTag());
-		    }
+		
+		}
 	}
-}
+
+
 		    	
 		    	
 

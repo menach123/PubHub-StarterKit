@@ -10,12 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import examples.pubhub.model.Book;
+import examples.pubhub.model.BookTag;
 import examples.pubhub.utilities.DAOUtilities;
 
 /**
  * Implementation for the BookDAO, responsible for querying the database for Book objects.
  */
-public class BookDAOImpl implements BookDAO {
+public class BookDAOImpl implements BookDAO , BookTagDAO {
 
 	Connection connection = null;	// Our connection to the database
 	PreparedStatement stmt = null;	// We use prepared statements to help protect against SQL injection
@@ -27,6 +28,8 @@ public class BookDAOImpl implements BookDAO {
 	public List<Book> getAllBooks() {
 		
 		List<Book> books = new ArrayList<>();
+		
+		String t = new String();
 
 		try {
 			connection = DAOUtilities.getConnection();	// Get our database connection from the manager
@@ -53,6 +56,10 @@ public class BookDAOImpl implements BookDAO {
 				// The PDF file is tricky; file data is stored in the DB as a BLOB - Binary Large Object. It's
 				// literally stored as 1's and 0's, so this one data type can hold any type of file.
 				book.setContent(rs.getBytes("content"));
+				
+				t = getTagString(rs.getString("isbn_13"));
+				
+				book.setTags(t);
 				
 				// Finally we add it to the list of Book objects returned by this query.
 				books.add(book);
@@ -194,6 +201,32 @@ public class BookDAOImpl implements BookDAO {
 	}
 
 	
+	
+	public List<String> getTagList() {
+		List<String>  tags = new ArrayList<>();
+
+		try {
+			connection = DAOUtilities.getConnection();
+			String sql = "SELECT tag_name FROM book_tags GROUP BY tag_name";
+			stmt = connection.prepareStatement(sql);
+				
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				String tag = rs.getString("tag_name");
+				
+				tags.add(tag);
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			closeResources();
+		}
+		
+		return tags;
+	}
+	
 	/*------------------------------------------------------------------------------------------------*/
 
 	
@@ -217,7 +250,11 @@ public class BookDAOImpl implements BookDAO {
 				book.setTitle(rs.getString("title"));
 				book.setPublishDate(rs.getDate("publish_date").toLocalDate());
 				book.setPrice(rs.getDouble("price"));
-				book.setContent(rs.getBytes("content"));			
+				book.setContent(rs.getBytes("content"));	
+				
+				
+				
+				book.setTags(getTagString(rs.getString("isbn_13")));
 			}
 			
 		} catch (SQLException e) {
@@ -302,27 +339,7 @@ public class BookDAOImpl implements BookDAO {
 	/*------------------------------------------------------------------------------------------------*/
 
 	
-	@Override
-	public boolean deleteBookByISBN(String isbn) {
-		try {
-			connection = DAOUtilities.getConnection();
-			String sql = "DELETE Books WHERE isbn_13=?";
-			stmt = connection.prepareStatement(sql);
-			
-			stmt.setString(1, isbn);
 
-			if (stmt.executeUpdate() != 0)
-				return true;
-			else
-				return false;
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			closeResources();
-		}
-	}
 
 	
 	/*------------------------------------------------------------------------------------------------*/
@@ -344,6 +361,252 @@ public class BookDAOImpl implements BookDAO {
 		} catch (SQLException e) {
 			System.out.println("Could not close connection!");
 			e.printStackTrace();
+		}
+	}
+
+
+	@Override
+	public List<BookTag> getAllTags() {
+
+		List<BookTag> tags = new ArrayList<>();
+		
+		try {
+			connection = DAOUtilities.getConnection(); 
+			String sql = "SELECT * FROM book_tags";
+			stmt = connection.prepareStatement(sql);
+			
+			ResultSet rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+//				System.out.println(rs.getString("isbn_13"));
+				BookTag tag = new BookTag(rs.getString("isbn_13"), rs.getString("tag_name"));
+				
+				tags.add(tag);
+				
+			}
+			
+			rs.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			closeResources();
+		}
+		return tags;
+	}
+	
+	/*------------------------------------------------------------------------------------------------*/
+
+
+	@Override
+	public List<Book> getBooksByTag(String tag) {
+
+		List<Book> books = new ArrayList<>();
+
+		try {
+			connection = DAOUtilities.getConnection();
+			String sql = "SELECT * FROM Books b INNER JOIN book_tags bt ON b.isbn_13 = bt.isbn_13 WHERE bt.tag_name LIKE ?";	// Note the ? in the query
+			
+			stmt = connection.prepareStatement(sql);
+			
+			// This command populate the 1st '?' with the title and wildcards, between ' '
+			stmt.setString(1, "%" + tag + "%");	
+			
+//			System.out.println(stmt.toString());
+			
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				Book book = new Book();
+
+				book.setIsbn13(rs.getString("isbn_13"));
+				book.setAuthor(rs.getString("author"));
+				book.setTitle(rs.getString("title"));
+				book.setPublishDate(rs.getDate("publish_date").toLocalDate());
+				book.setPrice(rs.getDouble("price"));
+				book.setContent(rs.getBytes("content"));
+				
+				books.add(book);
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			closeResources();
+		}
+		
+		return books;
+	}
+
+	/*------------------------------------------------------------------------------------------------*/
+	
+	
+	@Override
+	public List<BookTag> getTagByISBN(String isbn) {
+		
+		List<BookTag> tags = new ArrayList<>();
+		
+		try {
+			connection = DAOUtilities.getConnection(); 
+			String sql = "SELECT * FROM Book_Tags WHERE isbn_13 LIKE ?";
+			stmt = connection.prepareStatement(sql);
+			stmt.setString(1, isbn);
+//			System.out.println(stmt.toString());
+			ResultSet rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+//				System.out.println(rs.getString("isbn_13"));
+				BookTag tag = new BookTag(rs.getString("isbn_13"), rs.getString("tag_name"));
+				
+				tags.add(tag);
+				
+			}
+			
+			rs.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			closeResources();
+		}
+		return tags;
+	}
+
+
+	/*------------------------------------------------------------------------------------------------*/
+
+
+	@Override
+	public boolean addBookTag(BookTag tag) {
+		try {
+			connection = DAOUtilities.getConnection();
+			String sql = "INSERT INTO Book_Tags VALUES (?, ?)"; // Were using a lot of ?'s here...
+			stmt = connection.prepareStatement(sql);
+			
+			// But that's okay, we can set them all before we execute
+			stmt.setString(1, tag.getIsbn13());
+			stmt.setString(2, tag.getTag());
+			
+			// If we were able to add our book to the DB, we want to return true. 
+			// This if statement both executes our query, and looks at the return 
+			// value to determine how many rows were changed
+			if (stmt.executeUpdate() != 0)
+				return true;
+			else
+				return false;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			closeResources();
+		}
+	}
+
+	
+	/*------------------------------------------------------------------------------------------------*/
+
+
+	@Override
+	public boolean updateBookTag(BookTag tag) {
+		try {
+			connection = DAOUtilities.getConnection();
+			String sql = "UPDATE BOOK_TAGS SET isbn_13=?, tag_name=? WHERE isbn_13=?";
+			stmt = connection.prepareStatement(sql);
+			
+			stmt.setString(1, tag.getIsbn13());
+			stmt.setString(2, tag.getTag());
+			stmt.setString(3, tag.getIsbn13());
+			
+			System.out.println(stmt);
+			
+			if (stmt.executeUpdate() != 0)
+				return true;
+			else
+				return false;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			closeResources();
+		}
+		
+	}
+
+	
+	/*------------------------------------------------------------------------------------------------*/
+
+	@Override
+	public boolean deleteBookTagByISBN(String isbn, String tag) {
+		System.out.println(tag + " " + isbn);
+		try {
+			connection = DAOUtilities.getConnection();
+			String sql = "DELETE FROM Book_Tags WHERE isbn_13 LIKE ? AND tag_name LIKE ?";
+			stmt = connection.prepareStatement(sql);
+			
+			stmt.setString(1, isbn);
+			stmt.setString(2, tag);
+
+			if (stmt.executeUpdate() != 0)
+				return true;
+			else
+				return false;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			closeResources();
+		}
+	}
+
+	
+	/*------------------------------------------------------------------------------------------------*/
+	
+	public String getTagString(String isbn) {
+		
+		String tagString = null;
+		
+		List<BookTag> tags = getTagByISBN(isbn);
+		
+		for (int i = 0; i<tags.size(); i++) {
+			
+			BookTag tag = tags.get(i);
+			
+			if (tagString != null) {
+				tagString = tagString + " " + tag.getTag();
+				
+			}
+			else {
+				tagString = tag.getTag();
+			}
+			
+		}
+		
+		return tagString;
+	}
+
+
+	@Override
+	public boolean deleteBookByISBN(String isbn) {
+		try {
+			connection = DAOUtilities.getConnection();
+			String sql = "DELETE Books WHERE isbn_13=?";
+			stmt = connection.prepareStatement(sql);
+			
+			stmt.setString(1, isbn);
+
+			if (stmt.executeUpdate() != 0)
+				return true;
+			else
+				return false;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			closeResources();
 		}
 	}
 	

@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import examples.pubhub.dao.BookDAO;
+import examples.pubhub.dao.BookDAOImpl;
 import examples.pubhub.model.Book;
 import examples.pubhub.utilities.DAOUtilities;
 
@@ -32,7 +33,7 @@ public class PublishBookServlet extends HttpServlet {
 
 		String isbn13 = req.getParameter("isbn13");
 
-		BookDAO database = DAOUtilities.getBookDAO();
+		BookDAOImpl database = DAOUtilities.getBookDAO();
 		Book tempBook = database.getBookByISBN(isbn13);
 		if (tempBook != null) {
 			// ASSERT: book with isbn already exists

@@ -52,6 +52,7 @@
                           <li><a href="BookPublishing">Home (Level 100)</a></li>
                           <li class="divider"></li>
                           <li><a href="PublishBook">Publish Book</a></li>
+                          <li><a href="SearchTag"> Genre</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">
@@ -70,7 +71,7 @@
                           <li class="divider"></li>
                           <li><a href="#">Follow/Unfollow</a></li>
                           <li><a href="#">Talk to your fans</a></li>
-                        </ul>
+                        </ul>`
                     </li>
 
                                        

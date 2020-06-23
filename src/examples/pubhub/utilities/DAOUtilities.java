@@ -36,7 +36,7 @@ public class DAOUtilities {
 		return connection;
 	}
 	
-	public static BookDAO getBookDAO() {
+	public static BookDAOImpl getBookDAO() {
 		return new BookDAOImpl();
 	}
 

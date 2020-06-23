@@ -46,11 +46,40 @@
 		    </div>
 		  </div>
 		  <div class="form-group">
+		    <label for="tag" class="col-sm-4 control-label">Tags</label>
+		    <div class="col-sm-5">
+		       <input type="text" class="form-control" id="tags" name="tags" placeholder="Tags" required="required" value="${book.tags }" />
+		    </div>
+		  </div>
+		  <div class="form-group">
 		    <div class="col-sm-offset-4 col-sm-1">
-		      <button type="submit" class="btn btn-info">Update</button>
+		      <button type="submit" class="btn btn-info">CHANGE</button>
 		    </div>
 		  </div>
 		</form>
+		
+		<table class="table table-striped table-hover table-responsive pubhub-datatable">
+			<thead>
+				<tr>
+					<td>Genre:</td>
+
+					<td></td>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach var="tag" items="${tags}">
+					<tr>
+						<td><c:out value="${tag.tag}" /></td>
+						
+						<td><form action="DeleteTag" method="post">
+								<input type="hidden" name=isbn13 value="${tag.isbn13}">
+								<input type="hidden" name=tag value="${tag.tag}">
+								<button type="submit" class="btn btn-primary">DELETE</button>
+							</form></td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
 
 	  </div>
 	</header>

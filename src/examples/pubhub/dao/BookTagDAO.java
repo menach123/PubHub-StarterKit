@@ -18,10 +18,10 @@ public interface BookTagDAO {
 
 	public List<BookTag> getAllTags();
 	public List<Book> getBooksByTag(String title);
-	public BookTag getTagByISBN(String isbn);
+	public List<BookTag> getTagByISBN(String isbn);
 	
 	public boolean addBookTag(BookTag tag);
 	public boolean updateBookTag(BookTag tag);
-	public boolean deleteBookTagByISBN(String isbn);
+	public boolean deleteBookTagByISBN(String isbn, String tag);
 }
 

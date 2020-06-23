@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import examples.pubhub.dao.BookDAO;
 import examples.pubhub.dao.BookDAOImpl;
 import examples.pubhub.model.Book;
-import examples.pubhub.model.BookTag;
 import examples.pubhub.utilities.DAOUtilities;
 
 /**
@@ -21,8 +20,9 @@ import examples.pubhub.utilities.DAOUtilities;
 
 // This is a "View" servlet, and has been named accordingly. All it does is send the user to a new JSP page
 // But it also takes the opportunity to populate the session or request with additional data as needed.
-@WebServlet("/ViewBookDetails")
-public class ViewBookDetailsServlet extends HttpServlet {
+@WebServlet("/ViewTag")
+public class ViewTagServlet extends HttpServlet {
+	
 	private static final long serialVersionUID = 1L;
        
 
@@ -31,24 +31,20 @@ public class ViewBookDetailsServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		// The bookDetails.jsp page needs to have the details of the selected book saved to the request,
+		// The bookTagDetails.jsp page needs to have the details of the selected book saved to the request,
 		// Otherwise it won't know what details to display. Ergo, we need to fetch those details before we
 		// Actually redirect the user.
-		String isbn13 = request.getParameter("isbn13");
-		String title = request.getParameter("title");
-		System.out.println(title);
-		
+		String tag = request.getParameter("tag");
+		System.out.println(tag);
 		BookDAOImpl dao = DAOUtilities.getBookDAO();
-		Book book = dao.getBookByISBN(isbn13);
-		List<BookTag> tags = dao.getTagByISBN(isbn13);
+		List<Book> books = dao.getBooksByTag(tag);
 		
-		request.setAttribute("book", book);
-		request.setAttribute("tags", tags);
+		request.setAttribute("books", books);
 		
 		// We can use a forward here, because if a user wants to refresh their browser on this page,
 		// it will just show them the most recent details for their book. There's no risk of data
 		// miss-handling here.
-		request.getRequestDispatcher("bookDetails.jsp").forward(request, response);
+		request.getRequestDispatcher("bookTagDetails.jsp").forward(request, response);
 		
 	}
 

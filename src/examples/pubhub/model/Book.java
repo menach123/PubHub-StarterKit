@@ -1,6 +1,7 @@
 package examples.pubhub.model;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class Book {
 
@@ -12,6 +13,10 @@ public class Book {
 	private double price;
 	
 	private byte[] content;
+	
+	private List<String> listOfTags;
+	
+	private String tags;
 
 	// Constructor used when no date is specified
 	public Book(String isbn, String title, String author, byte[] content) {
@@ -20,6 +25,7 @@ public class Book {
 		this.author = author;
 		this.publishDate = LocalDate.now();
 		this.content = content;
+		this.tags = null;
 	}
 	
 	// Constructor used when a date is specified
@@ -29,6 +35,7 @@ public class Book {
 		this.author = author;
 		this.publishDate = publishDate;
 		this.content = content;
+		this.tags = null;
 	}
 	
 	// Default constructor
@@ -38,6 +45,7 @@ public class Book {
 		this.author = null;
 		this.publishDate = LocalDate.now();
 		this.content = null;
+		this.tags = null;
 	}
 	
 	public String getIsbn13() {
@@ -86,6 +94,35 @@ public class Book {
 
 	public void setContent(byte[] content) {
 		this.content = content;
+	}
+
+	public String getTags() {
+		return tags;
+	}
+
+	public void setTags(String tags) {
+		if (this.tags == null) {
+			this.tags = tags;
+		}
+		else {
+			this.tags += " " + tags;
+		}
+	}
+
+	public List<String> getListOfTags() {
+		return listOfTags;
+	}
+
+	public void setListOfTags(List<String> listOfTags) {
+		this.listOfTags = listOfTags;
+	}
+	
+	public void addtags(String tag) {
+		this.listOfTags.add(tag);
+		this.tags = null;
+		for (int i = 0; i < listOfTags.size(); i++) {
+			this.tags = " " + listOfTags.get(i);
+		}
 	}
 	
 	
